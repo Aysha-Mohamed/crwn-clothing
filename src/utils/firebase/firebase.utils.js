@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
-import {getAuth,signInWithPopup,signInWithRedirect,GoogleAuthProvider } from 'firebase/auth';
+import {getAuth,signInWithPopup,signInWithRedirect,GoogleAuthProvider,createUserWithEmailAndPassword } from 'firebase/auth';
 
 import { getFirestore,doc,getDoc,setDoc } from 'firebase/firestore';
 
@@ -33,7 +33,12 @@ export const signInWithGooglePopup = () => signInWithPopup(auth,provider);
 
 export const db = getFirestore();
 
-export const createUserDocumentFromAuth = async(userAuth) =>{
+
+
+//when using google popup signin , we get the display name, email. so we set the userdoc to these variables. 
+//but when using email password sigin, we dont get the display name. so we are adding argument "additionalInformation" in case
+// we dont get the display name.
+export const createUserDocumentFromAuth = async(userAuth,additionalInformation={displayName :'mike'}) =>{
     const userDocRef = doc(db, 'users' , userAuth.uid);
     console.log("userDoc",userDocRef);
 
@@ -52,7 +57,8 @@ export const createUserDocumentFromAuth = async(userAuth) =>{
             await setDoc(userDocRef,{
                 displayName,
                 email,
-                createdAt
+                createdAt,
+                ...additionalInformation
             });
         }
         catch(error){
@@ -64,4 +70,12 @@ export const createUserDocumentFromAuth = async(userAuth) =>{
     return userDocRef;
 
 
+}
+
+//sign up functionality
+
+export const createAuthUserWithEmailAndPassword = async (email,password) =>{
+if(!email || !password) return;
+
+return await createUserWithEmailAndPassword(auth,email,password);
 }
